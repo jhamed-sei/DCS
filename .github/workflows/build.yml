@@ -36,4 +36,5 @@ jobs:
         run: |
           cd ./DCS
           export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
+          make CFLAGS="-Wno-error=address"
           ./kmc-resources/scripts/build.sh
