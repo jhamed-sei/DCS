@@ -34,7 +34,7 @@ if [ $? != 0 ]; then
   echo "ERROR: Failed cmake in $SRC_CRYPTO_LIB"
   exit 1
 fi
-make >> make.out
+make CFLAGS="-Wno-error=address" >> make.out
 if [ $? != 0 ]; then
   echo "ERROR: Failed to build $SRC_CRYPTO_LIB"
   exit 1
