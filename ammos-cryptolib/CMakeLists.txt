@@ -52,7 +52,7 @@ MESSAGE(STATUS "Build Python: ${BUILD_PYTHON}")
 set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
 set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/install) # install to root project dir
 
-add_compile_options(-Wno-error=address)
+# add_compile_options(-Wno-error=address)
 
 # 2025-04-16 - aruty
 # Override crypto_config.h defaults here
