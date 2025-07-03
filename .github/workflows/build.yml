@@ -52,5 +52,6 @@ jobs:
       - name: build DCS
         run: |
           cd ./DCS
+          chmod +x kmc-sa-mgmt/kmc-sa-gui/src/main/frontend/node_modules/.bin/* || true
           export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
           ./kmc-resources/scripts/build.sh
