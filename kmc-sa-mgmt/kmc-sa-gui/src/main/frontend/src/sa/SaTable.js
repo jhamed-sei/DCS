@@ -60,7 +60,7 @@ export default function SaTable(props) {
 
     useEffect(() => {
         (refreshTable)()
-    }, [])
+    }, [refreshTable])
 
     /**
      * Refresh table data

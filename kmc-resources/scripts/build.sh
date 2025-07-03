@@ -88,7 +88,7 @@ mvn -q package -DDEFAULT_PREFIX="${SDLSSVC_PREFIX}" -DDEFAULT_BINPATH="${SDLSSVC
 echo "----------------------------------------"
 echo "KMC SA Management"
 echo "----------------------------------------"
-cd $SRC_KMC/kmc-sa-mgmt ; mvn -X -q package -DDEFAULT_PREFIX="${SAMGMTSVC_PREFIX}" -DDEFAULT_BINPATH="${SAMGMTSVC_PREFIX}/bin" -DDEFAULT_LIBPATH="${SAMGMTSVC_LIBPATH}" -DDEFAULT_CFGPATH="${SAMGMTSVC_CFGPATH}" -DDEFAULT_LOGPATH="${SAMGMTSVC_LOGPATH}" # will run the tests
+cd $SRC_KMC/kmc-sa-mgmt ; mvn -q package -DDEFAULT_PREFIX="${SAMGMTSVC_PREFIX}" -DDEFAULT_BINPATH="${SAMGMTSVC_PREFIX}/bin" -DDEFAULT_LIBPATH="${SAMGMTSVC_LIBPATH}" -DDEFAULT_CFGPATH="${SAMGMTSVC_CFGPATH}" -DDEFAULT_LOGPATH="${SAMGMTSVC_LOGPATH}" # will run the tests
 
 if [ "$1" == "skip-test" ]; then
   cd $SRC_KMC/kmc-crypto-library ; mvn jar:test-jar
