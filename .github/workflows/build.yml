@@ -40,8 +40,7 @@ jobs:
           ./kmc-resources/scripts/build.sh
 
   # My image
-  dcs_build:
-    if: false
+  dcs_build_new_image:
     runs-on: ubuntu-latest
     container:
       image: ha4606/hayk-dcs-test:dcs-ubuntu-20250703.1
