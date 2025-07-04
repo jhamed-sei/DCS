@@ -40,10 +40,26 @@ jobs:
           ./kmc-resources/scripts/build.sh
 
   # My image
-  dcs_build_new_image:
+  dcs_build_ubuntu:
     runs-on: ubuntu-latest
     container:
       image: ha4606/hayk-dcs-test:dcs-ubuntu-20250703.1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: DCS
+          submodules: recursive
+      - name: build DCS
+        run: |
+          cd ./DCS
+          export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
+          ./kmc-resources/scripts/build.sh
+
+  # My image
+  dcs_build_rocky:
+    runs-on: ubuntu-latest
+    container:
+      image: ha4606/hayk-dcs-test:dcs-rocky-9-20250703.1
     steps:
       - uses: actions/checkout@v4
         with:
