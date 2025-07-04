@@ -41,7 +41,7 @@ jobs:
   #         export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
   #         ./kmc-resources/scripts/build.sh
 
-  # My image
+  # Ubuntu Image
   dcs_build_ubuntu:
     #if: false
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
           export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
           ./kmc-resources/scripts/build.sh
 
-  # My image
+  # Rocky Image
   dcs_build_rocky:
     runs-on: ubuntu-latest
     container:
