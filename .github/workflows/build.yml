@@ -41,7 +41,7 @@ jobs:
 
   # My image
   dcs_build_ubuntu:
-    if: false
+    #if: false
     runs-on: ubuntu-latest
     container:
       image: ha4606/hayk-dcs-test:dcs-ubuntu-20250703.1
@@ -53,7 +53,7 @@ jobs:
       - name: build DCS
         run: |
           cd ./DCS
-          export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
           ./kmc-resources/scripts/build.sh
 
   # My image
