@@ -4,43 +4,44 @@ on: push
 
 jobs:
   # DCS build test
-  dcs_build:
-    if: false
-    runs-on: ubuntu-latest
-    container:
-      image: ivvitc/cryptolib:20250108
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          #repository: NASA-AMMOS/DCS
-          path: DCS
-          submodules: recursive
-      - name: setup python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Set current branch
-        run: echo "BRANCH_NAME=$(echo ${{ github.head_ref || github.ref_name }})" >> $GITHUB_ENV
-      - name: Update
-        run: apt-get update
-      - name: Install Dependencies
-        run: apt-get install -y libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3 openjdk-17-jdk openjdk-17-jre cmake swig maven podman default-jdk
-      - name: Install Python Libraries
-        run: |
-          pip3 install --break-system-packages pycryptodome cffi invoke
-      #    - name: update Cryptolib
-      #      run: |
-      #        cd DCS/ammos-cryptolib
-      #        rm -rf CryptoLib
-      #        git clone --single-branch --branch $BRANCH_NAME https://github.com/nasa/CryptoLib.git
-      - name: build DCS
-        run: |
-          cd ./DCS
-          export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
-          ./kmc-resources/scripts/build.sh
+  # dcs_build:
+  #   if: false
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: ivvitc/cryptolib:20250108
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         #repository: NASA-AMMOS/DCS
+  #         path: DCS
+  #         submodules: recursive
+  #     - name: setup python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.11"
+  #     - name: Set current branch
+  #       run: echo "BRANCH_NAME=$(echo ${{ github.head_ref || github.ref_name }})" >> $GITHUB_ENV
+  #     - name: Update
+  #       run: apt-get update
+  #     - name: Install Dependencies
+  #       run: apt-get install -y libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3 openjdk-17-jdk openjdk-17-jre cmake swig maven podman default-jdk
+  #     - name: Install Python Libraries
+  #       run: |
+  #         pip3 install --break-system-packages pycryptodome cffi invoke
+  #     #    - name: update Cryptolib
+  #     #      run: |
+  #     #        cd DCS/ammos-cryptolib
+  #     #        rm -rf CryptoLib
+  #     #        git clone --single-branch --branch $BRANCH_NAME https://github.com/nasa/CryptoLib.git
+  #     - name: build DCS
+  #       run: |
+  #         cd ./DCS
+  #         export JAVA_HOME=/lib/jvm/java-17-openjdk-amd64
+  #         ./kmc-resources/scripts/build.sh
 
   # My image
   dcs_build_ubuntu:
+    if: false
     runs-on: ubuntu-latest
     container:
       image: ha4606/hayk-dcs-test:dcs-ubuntu-20250703.1
