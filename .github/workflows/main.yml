@@ -1,0 +1,26 @@
+# .github/workflows/hadolint.yml
+name: Hadolint
+
+on:
+  pull_request:
+    paths:
+      - '**/Dockerfile'
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Dockerfile'
+
+jobs:
+  lint:
+    name: Lint Dockerfile(s) with Hadolint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./Dockerfile
