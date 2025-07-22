@@ -1,26 +1,24 @@
 # .github/workflows/hadolint.yml
-name: Hadolint
+name: Hadolint (Manual)
 
 on:
-  pull_request:
-    paths:
-      - '**/Dockerfile'
-  push:
-    branches:
-      - main
-    paths:
-      - '**/Dockerfile'
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
-  lint:
-    name: Lint Dockerfile(s) with Hadolint
+  hadolint:
+    name: Lint all Dockerfiles
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Hadolint
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: ./Dockerfile
+      - name: Install Hadolint
+        run: |
+          wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /usr/local/bin/hadolint
+
+      - name: Find and lint all Dockerfiles
+        run: |
+          echo "Scanning all Dockerfiles..."
+          find . -type f -iname 'Dockerfile*' -print0 | xargs -0 -n1 hadolint
