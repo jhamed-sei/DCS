@@ -27,12 +27,6 @@ jobs:
             git cmake build-essential libgcrypt20-dev maven swig \
             libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3-pip curl
 
-      - name: Download JUnit 4.13.2 jar
-        run: |
-          mkdir -p kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
-          curl -L -o kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
-            https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
-
       - name: Install Python modules
         run: |
           pip3 install --upgrade pip
