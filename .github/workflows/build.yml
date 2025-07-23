@@ -13,15 +13,15 @@ jobs:
     steps:
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
+          apt-get update
+          apt-get install -y \
             build-essential gcc-11 openjdk-17-jdk cmake swig git\
             libmariadb-dev libcurl4-openssl-dev \
             python3-pip maven curl 
           git --version
 
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-            && sudo update-alternatives --set gcc /usr/bin/gcc-11
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
+            && update-alternatives --set gcc /usr/bin/gcc-11
 
       - name: Checkout repo & submodules
         uses: actions/checkout@v4
