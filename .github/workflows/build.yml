@@ -32,11 +32,13 @@ jobs:
           pip3 install --upgrade pip
           pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
 
-      - name: Ensure JUnit JAR is present
+      - name: Ensure JUnit and Hamcrest JARs are present
         run: |
           mkdir -p ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
           curl -sSL -o ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
             https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
+          curl -sSL -o ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/hamcrest-2.2.jar \
+            https://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar
 
       - name: Make build script executable
         run: chmod +x ./kmc-resources/scripts/build.sh
