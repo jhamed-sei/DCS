@@ -54,5 +54,5 @@ jobs:
         with:
           name: dcs-kmc-build
           path: |
-            ./kmc/**/target/*.jar
-            ./crypto-lib/build/lib
+             **/target/*.jar
+             **/crypto-lib/build/lib/*
