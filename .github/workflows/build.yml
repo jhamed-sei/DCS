@@ -28,7 +28,6 @@ jobs:
       SRC_CRYPTO_LIB: ./crypto-lib
       SRC_KMC: ./kmc
       SRC_KMIP: ./kmip
-      CMAKE_INCLUDE_PATH: /usr/include/mariadb
 
     steps:
       - name: Checkout repository (with submodules)
@@ -53,6 +52,9 @@ jobs:
 
       - name: Run build script
         run: ./kmc-resources/scripts/build.sh skip-test
+        env:
+          CMAKE_INCLUDE_PATH: /usr/include/mariadb
+          CFLAGS: -Wno-address
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
