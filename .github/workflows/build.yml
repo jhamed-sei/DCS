@@ -34,8 +34,8 @@ jobs:
 
       - name: Ensure JUnit JAR is present
         run: |
-          mkdir -p kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
-          curl -sSL -o kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
+          mkdir -p ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
+          curl -sSL -o ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
             https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
 
       - name: Make build script executable
