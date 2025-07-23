@@ -32,9 +32,9 @@ jobs:
       PATH: /usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
 
     steps:
-      - name: Check Git version
-        run: git --version
-        
+      - name: Install Git
+        run: sudo apt-get update && sudo apt-get install -y git
+
       - name: Checkout repository (with submodules)
         uses: actions/checkout@v4
         with:
