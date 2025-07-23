@@ -11,7 +11,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: kmc-build
+          name: dcs-kmc-build
           path: ./build-output
 
       - name: Install Syft
