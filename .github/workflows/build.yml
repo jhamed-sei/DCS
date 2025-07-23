@@ -5,44 +5,46 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     env:
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       PATH: /usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
 
     steps:
-      - name: Install system dependencies
-        run: |
-          apt-get update
-          apt-get install -y \
-            build-essential gcc-11 openjdk-17-jdk cmake swig git\
-            libmariadb-dev libcurl4-openssl-dev \
-            python3-pip maven curl 
-          git --version
-
-          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
-            && update-alternatives --set gcc /usr/bin/gcc-11
-
       - name: Checkout repo & submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
+          
+      - name: Install system dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            build-essential gcc-11 openjdk-17-jdk cmake\
+            libmariadb-dev libcurl4-openssl-dev \
+            python3-pip maven curl 
+
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
+            && update-alternatives --set gcc /usr/bin/gcc-11
 
       - name: Install Python modules
         run: |
           pip3 install --upgrade pip
           pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
 
-      - name: Make build script executable
+      - name: Set permissions for build script
         run: chmod +x ./kmc-resources/scripts/build.sh
 
       - name: Run build script
         run: ./kmc-resources/scripts/build.sh skip-test
+        env:
+          CMAKE_INCLUDE_PATH: /usr/include/mariadb
+          CFLAGS: -Wno-address
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dcs-build
+          name: kmc-build
           path: |
-            ammos-cryptolib/build/
-            kmc-resources/**/target/
+            ./kmc/**/target/*.jar
+            ./crypto-lib/build/lib
