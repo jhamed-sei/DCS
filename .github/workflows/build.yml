@@ -35,7 +35,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
-          
+
       - name: Set up Java 17
         uses: actions/setup-java@v3
         with:
@@ -45,7 +45,7 @@ jobs:
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential libgcrypt20-dev maven swig
+          sudo apt-get install -y cmake build-essential libgcrypt20-dev maven swig libcurl4-openssl-dev
 
       - name: Set permissions for build script
         run: chmod +x ./kmc-resources/scripts/build.sh
