@@ -28,6 +28,7 @@ jobs:
       SRC_CRYPTO_LIB: ./crypto-lib
       SRC_KMC: ./kmc
       SRC_KMIP: ./kmip
+      CMAKE_INCLUDE_PATH: /usr/include/mariadb
 
     steps:
       - name: Checkout repository (with submodules)
@@ -45,7 +46,7 @@ jobs:
       - name: Install required packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake build-essential libgcrypt20-dev maven swig libcurl4-openssl-dev libmariadb-dev
+          sudo apt-get install -y cmake build-essential libgcrypt20-dev maven swig libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat
 
       - name: Set permissions for build script
         run: chmod +x ./kmc-resources/scripts/build.sh
