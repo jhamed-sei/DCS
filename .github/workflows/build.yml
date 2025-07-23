@@ -34,8 +34,8 @@ jobs:
     steps:
       - name: Install required system packages
         run: |
-          apt-get update
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
             git cmake build-essential libgcrypt20-dev maven swig \
             libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3-pip
 
