@@ -1,11 +1,11 @@
 name: Build and Export KMC
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 
     env:
       PREFIX: /usr/local/kmc
       BINPATH: /usr/local/kmc/bin
@@ -13,7 +13,7 @@ jobs:
       CFGPATH: /usr/local/kmc/etc
       LOGPATH: /var/log/kmc
       CRYPTOSVC_PREFIX: /usr/local/cryptosvc
-      CRYPTOSVC_LIBPATH: /usr/local/cryptosvc/lib 
+      CRYPTOSVC_LIBPATH: /usr/local/cryptosvc/lib
       CRYPTOSVC_CFGPATH: /usr/local/cryptosvc/etc
       CRYPTOSVC_LOGPATH: /var/log/cryptosvc
       SDLSSVC_PREFIX: /usr/local/sdls
@@ -32,8 +32,23 @@ jobs:
       PATH: /usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
 
     steps:
-      - name: Install Git
-        run: sudo apt-get update && sudo apt-get install -y git
+      - name: Install required system packages
+        run: |
+          pt-get update
+          apt-get install -y \
+            git cmake build-essential libgcrypt20-dev maven swig \
+            libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3-pip
+
+      - name: Download JUnit 4.13.2
+        run: |
+          mkdir -p kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
+          curl -L -o kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
+            https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
+
+      - name: Install Python modules
+        run: |
+          pip3 install --upgrade pip
+          pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
 
       - name: Checkout repository (with submodules)
         uses: actions/checkout@v4
@@ -46,23 +61,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-
-      - name: Install required packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake build-essential libgcrypt20-dev maven swig libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3-pip
-
-      - name: Download JUnit 4.13.2
-        run: |
-          mkdir -p kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
-          curl -L -o kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
-            https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
-
-      - name: Install Python modules
-        run: |
-          pip3 install --upgrade pip
-          pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
 
       - name: Set permissions for build script
         run: chmod +x ./kmc-resources/scripts/build.sh
