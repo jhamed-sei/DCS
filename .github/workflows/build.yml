@@ -1,20 +1,17 @@
-name: Build and SBOM Generation
+name: Build DCS Project
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     env:
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
       PATH: /usr/lib/jvm/java-17-openjdk-amd64/bin:$PATH
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repo & submodules
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -22,22 +19,15 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            build-essential \
-            gcc-11 \
-            openjdk-17-jdk \
-            cmake \
-            swig \
-            libmariadb-dev \
-            python3-pip \
-            maven \
-            git \
-            curl
+          sudo apt-get install -y \
+            build-essential gcc-11 openjdk-17-jdk cmake swig \
+            libmariadb-dev libcurl4-openssl-dev \
+            python3-pip maven curl
 
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100
-          sudo update-alternatives --set gcc /usr/bin/gcc-11
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 \
+            && sudo update-alternatives --set gcc /usr/bin/gcc-11
 
-      - name: Install Python dependencies
+      - name: Install Python modules
         run: |
           pip3 install --upgrade pip
           pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
@@ -45,50 +35,13 @@ jobs:
       - name: Make build script executable
         run: chmod +x ./kmc-resources/scripts/build.sh
 
-      - name: Run build
+      - name: Run build script
         run: ./kmc-resources/scripts/build.sh skip-test
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kmc-build-artifacts
+          name: dcs-build
           path: |
             ammos-cryptolib/build/
             kmc-resources/**/target/
-          if-no-files-found: error
-
-  generate-sbom:
-    runs-on: ubuntu-22.04
-    needs: build
-
-    steps:
-      - name: Checkout repo (for POM context)
-        uses: actions/checkout@v4
-        with:
-          submodules: false
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: kmc-build-artifacts
-          path: sbom-input
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Generate SBOM with CycloneDX Maven plugin
-        run: |
-          mvn org.cyclonedx:cyclonedx-maven-plugin:2.7.9:makeAggregateBom \
-            -DoutputFormat=xml \
-            -DoutputName=sbom \
-            -DincludeBomSerialNumber=true \
-            -DincludeLicenseText=true
-
-      - name: Upload SBOM
-        uses: actions/upload-artifact@v4
-        with:
-          name: sbom
-          path: target/sbom.xml
