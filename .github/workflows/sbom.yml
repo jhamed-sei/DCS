@@ -1,10 +1,7 @@
 name: Generate SBOM (SPDX)
 
 on:
-  workflow_run:
-    workflows: ["Build DCS KMC"] 
-    types:
-      - completed
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   generate-sbom:
