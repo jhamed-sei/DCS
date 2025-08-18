@@ -3,6 +3,11 @@ name: Build DCS KMC
 on:
   workflow_dispatch:
 
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
 jobs:
   build-and-scan:
     runs-on: ubuntu-latest
