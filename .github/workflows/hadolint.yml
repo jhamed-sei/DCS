@@ -27,8 +27,8 @@ jobs:
 
           # Run again with SARIF output
           find . -type f -iname 'Dockerfile*' -print0 | \
-            xargs -0 -n1 hadolint --failure-threshold error \
-              -f sarif > hadolint-report.sarif
+            xargs -0 -n1 hadolint --failure-threshold error -f sarif \
+            | jq -s '.[0]' > hadolint-report.sarif
 
       - name: Upload Hadolint Report
         uses: actions/upload-artifact@v4
