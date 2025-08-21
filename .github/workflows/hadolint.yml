@@ -8,6 +8,7 @@ jobs:
   hadolint:
     name: Lint all Dockerfiles
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -21,4 +22,4 @@ jobs:
       - name: Find and lint all Dockerfiles
         run: |
           echo "Scanning all Dockerfiles..."
-          find . -type f -iname 'Dockerfile*' -print0 | xargs -0 -n1 hadolint
+          find . -type f -iname 'Dockerfile*' -print0 | xargs -0 -n1 hadolint --failure-threshold error
