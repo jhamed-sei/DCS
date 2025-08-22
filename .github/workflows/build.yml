@@ -166,11 +166,13 @@ jobs:
       - name: Scan SBOM for Vulnerabilities (SARIF)
         run: grype sbom:sbom.spdx.json -o sarif > grype-results.sarif
 
-      - name: Upload Grype Scan Report as Artifact
+      - name: Upload Grype Reports as Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: grype-scan-report
-          path: grype-report.txt
+          name: grype-sbom-reports
+          path: |
+            grype-report.txt
+            grype-results.sarif
 
       - name: Upload Grype SARIF to Security Dashboard
         uses: github/codeql-action/upload-sarif@v3
