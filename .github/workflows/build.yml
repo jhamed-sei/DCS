@@ -172,7 +172,7 @@ jobs:
           name: grype-scan-report
           path: grype-report.txt
 
-      - name: Upload Grype SARIF to Security Dashboard
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: grype-results.sarif
+      # - name: Upload Grype SARIF to Security Dashboard
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   with:
+      #     sarif_file: grype-results.sarif
