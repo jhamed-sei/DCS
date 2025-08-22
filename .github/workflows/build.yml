@@ -148,7 +148,7 @@ jobs:
       - name: Upload SBOM to Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.1.1
         with:
-          sbom-path: sbom.spdx.json
+          filePath: sbom.spdx.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
