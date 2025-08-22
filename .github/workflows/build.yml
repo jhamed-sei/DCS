@@ -89,6 +89,46 @@ jobs:
           sarif_file: semgrep-report.sarif
         continue-on-error: true
         
+    hadolint:
+      name: Lint all Dockerfiles
+      runs-on: ubuntu-latest
+      continue-on-error: true 
+      permissions:
+        contents: read
+        security-events: write 
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Install Hadolint
+          run: |
+            wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+            chmod +x /usr/local/bin/hadolint
+
+        - name: Run Hadolint
+          run: |
+            echo "Scanning all Dockerfiles..."
+            find . -type f -iname 'Dockerfile*' -print0 | \
+              xargs -0 -n1 hadolint --failure-threshold error \
+                -f tty > hadolint-report.txt
+
+            # Run again with SARIF output
+            find . -type f -iname 'Dockerfile*' -print0 | \
+              xargs -0 -n1 hadolint --failure-threshold error -f sarif \
+              | jq -s '.[0]' > hadolint-report.sarif
+
+        - name: Upload Hadolint Report
+          uses: actions/upload-artifact@v4
+          with:
+            name: hadolint-text-report
+            path: hadolint-report.txt
+
+        - name: Upload Hadolint SARIF to Security Dashboard
+          uses: github/codeql-action/upload-sarif@v3
+          with:
+            sarif_file: hadolint-report.sarif  
+                
   generate-sbom:
     name: SBOM & Vulnerability Scan
     runs-on: ubuntu-latest
@@ -105,12 +145,10 @@ jobs:
       - name: Generate SBOM (SPDX format)
         run: syft dir:. -o spdx-json > sbom.spdx.json
 
-      - name: Install Grype
-        run: |
-          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
-
-      - name: Scan SBOM for Vulnerabilities
-        run: grype sbom:sbom.spdx.json -o table > grype-report.txt
+      - name: Upload SBOM to Dependency Graph
+        uses: advanced-security/sbom-upload@v1
+        with:
+          sbom-path: sbom.spdx.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
@@ -118,10 +156,23 @@ jobs:
           name: sbom-spdx-json
           path: sbom.spdx.json
 
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan SBOM for Vulnerabilities
+        run: grype sbom:sbom.spdx.json -o table > grype-report.txt
+
+      - name: Scan SBOM for Vulnerabilities (SARIF)
+        run: grype sbom:sbom.spdx.json -o sarif > grype-results.sarif
+
       - name: Upload Grype Scan Report as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: grype-scan-report
           path: grype-report.txt
 
-  
+      - name: Upload Grype SARIF to Security Dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: grype-results.sarif
