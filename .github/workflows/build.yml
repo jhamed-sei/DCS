@@ -146,7 +146,7 @@ jobs:
         run: syft dir:. -o spdx-json > sbom.spdx.json
 
       - name: Upload SBOM to Dependency Graph
-        uses: advanced-security/sbom-upload@v1
+        uses: advanced-security/spdx-dependency-submission-action@v0.1.1
         with:
           sbom-path: sbom.spdx.json
 
