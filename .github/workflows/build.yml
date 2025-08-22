@@ -89,46 +89,46 @@ jobs:
           sarif_file: semgrep-report.sarif
         continue-on-error: true
         
-    hadolint:
-      name: Lint all Dockerfiles
-      runs-on: ubuntu-latest
-      continue-on-error: true 
-      permissions:
-        contents: read
-        security-events: write 
+  hadolint:
+    name: Lint all Dockerfiles
+    runs-on: ubuntu-latest
+    continue-on-error: true 
+    permissions:
+      contents: read
+      security-events: write 
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        - name: Install Hadolint
-          run: |
-            wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
-            chmod +x /usr/local/bin/hadolint
+      - name: Install Hadolint
+        run: |
+          wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /usr/local/bin/hadolint
 
-        - name: Run Hadolint
-          run: |
-            echo "Scanning all Dockerfiles..."
-            find . -type f -iname 'Dockerfile*' -print0 | \
-              xargs -0 -n1 hadolint --failure-threshold error \
-                -f tty > hadolint-report.txt
+      - name: Run Hadolint
+        run: |
+          echo "Scanning all Dockerfiles..."
+          find . -type f -iname 'Dockerfile*' -print0 | \
+            xargs -0 -n1 hadolint --failure-threshold error \
+              -f tty > hadolint-report.txt
 
-            # Run again with SARIF output
-            find . -type f -iname 'Dockerfile*' -print0 | \
-              xargs -0 -n1 hadolint --failure-threshold error -f sarif \
-              | jq -s '.[0]' > hadolint-report.sarif
+          # Run again with SARIF output
+          find . -type f -iname 'Dockerfile*' -print0 | \
+            xargs -0 -n1 hadolint --failure-threshold error -f sarif \
+            | jq -s '.[0]' > hadolint-report.sarif
 
-        - name: Upload Hadolint Report
-          uses: actions/upload-artifact@v4
-          with:
-            name: hadolint-text-report
-            path: hadolint-report.txt
+      - name: Upload Hadolint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-text-report
+          path: hadolint-report.txt
 
-        - name: Upload Hadolint SARIF to Security Dashboard
-          uses: github/codeql-action/upload-sarif@v3
-          with:
-            sarif_file: hadolint-report.sarif  
-                
+      - name: Upload Hadolint SARIF to Security Dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-report.sarif  
+
   generate-sbom:
     name: SBOM & Vulnerability Scan
     runs-on: ubuntu-latest
@@ -176,3 +176,4 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: grype-results.sarif
+å
