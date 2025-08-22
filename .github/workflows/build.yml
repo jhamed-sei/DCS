@@ -148,7 +148,7 @@ jobs:
       - name: Upload SBOM to Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.1.1
         with:
-          filePath: sbom.spdx.json
+          spdx-path: sbom.spdx.json
 
       - name: Upload SBOM as Artifact
         uses: actions/upload-artifact@v4
@@ -172,7 +172,7 @@ jobs:
           name: grype-scan-report
           path: grype-report.txt
 
-      # - name: Upload Grype SARIF to Security Dashboard
-      #   uses: github/codeql-action/upload-sarif@v3
-      #   with:
-      #     sarif_file: grype-results.sarif
+      - name: Upload Grype SARIF to Security Dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: grype-results.sarif
