@@ -170,11 +170,23 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: grype-sbom-reports
-          path: |
+          path: | 
             grype-report.txt
             grype-results.sarif
+    
+      - name: Patch SARIF for GitHub Code Scanning
+        run: |
+          # Ensure every result has an artifactLocation.uri
+          jq '
+            .runs[0].results |= map(
+              if .locations[0].physicalLocation.artifactLocation.uri == "" then
+                .locations[0].physicalLocation.artifactLocation.uri = "/grype-dependencies"
+              else .
+              end
+            )
+          ' grype-results.sarif > grype-results-fixed.sarif
 
       - name: Upload Grype SARIF to Security Dashboard
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: grype-results.sarif
+          sarif_file: grype-results-fixed.sarif
