@@ -88,14 +88,14 @@ jobs:
         with:
           sarif_file: semgrep-report.sarif
         continue-on-error: true
-        
+
   hadolint:
     name: Lint all Dockerfiles
     runs-on: ubuntu-latest
-    continue-on-error: true 
+    continue-on-error: true
     permissions:
       contents: read
-      security-events: write 
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -127,7 +127,7 @@ jobs:
       - name: Upload Hadolint SARIF to Security Dashboard
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: hadolint-report.sarif  
+          sarif_file: hadolint-report.sarif
 
   generate-sbom:
     name: SBOM & Vulnerability Scan
@@ -176,4 +176,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: grype-results.sarif
-å
