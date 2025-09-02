@@ -241,11 +241,3 @@ jobs:
         with:
           sarif_file: grype-results-fixed.sarif
 
-  osv-scanner:
-    name: OSV Scanner
-    runs-on: ubuntu-latest
-    steps:
-  scorecard:
-    name: Scorecard
-    runs-on: ubuntu-latest
-    steps:
