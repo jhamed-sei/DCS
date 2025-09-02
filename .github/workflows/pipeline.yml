@@ -1,0 +1,251 @@
+name: AMMOS Pipeline
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+  security-events: write
+
+jobs:
+  build: 
+    name: Build DCS KMC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            git cmake build-essential libgcrypt20-dev maven swig \
+            libcurl4-openssl-dev libmariadb-dev libmariadb-dev-compat python3-pip curl
+
+      - name: Install Python modules
+        run: |
+          pip3 install --upgrade pip
+          pip3 install cffi==1.14.5 invoke==2.2.0 pycryptodome==3.20.0
+
+      - name: Ensure JUnit and Hamcrest JARs are present
+        run: |
+          mkdir -p ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test
+          curl -sSL -o ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/junit-4.13.2.jar \
+            https://search.maven.org/remotecontent?filepath=junit/junit/4.13.2/junit-4.13.2.jar
+          curl -sSL -o ammos-cryptolib/kmc_sdls/kmc_sdls_java/kmc_sdls_java_test/hamcrest-2.2.jar \
+            https://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar
+
+      - name: Make build script executable
+        run: chmod +x ./kmc-resources/scripts/build.sh
+
+      - name: Run build script with skip-test
+        run: ./kmc-resources/scripts/build.sh skip-test
+        env:
+          CMAKE_INCLUDE_PATH: /usr/include/mariadb
+          CFLAGS: -Wno-address
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dcs-kmc-build
+          path: |
+            **/target/*.jar
+            **/crypto-lib/build/lib/*
+            
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
+
+  bandit:
+    name: Bandit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bandit Scan
+        uses: shundor/python-bandit-scan@ab1d87dfccc5a0ffab88be3aaac6ffe35c10d6cd
+        with: # optional arguments
+          # exit with 0, even with results found
+          exit_zero: true # optional, default is DEFAULT
+          # Github token of the repository (automatically created by Github)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information.
+          # File or directory to run bandit on
+          # path: # optional, default is .
+          # Report only issues of a given severity level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
+          # level: # optional, default is UNDEFINED
+          # Report only issues of a given confidence level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
+          # confidence: # optional, default is UNDEFINED
+          # comma-separated list of paths (glob patterns supported) to exclude from scan (note that these are in addition to the excluded paths provided in the config file) (default: .svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg)
+          # excluded_paths: # optional, default is DEFAULT
+          # comma-separated list of test IDs to skip
+          # skips: # optional, default is DEFAULT
+          # path to a .bandit file that supplies command line arguments
+          # ini_path: # optional, default is DEFAULT
+
+  semgrep:
+    name: Semgrep
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep (Community Rules)
+        run: |
+          semgrep --config=auto --json > semgrep-report.json
+          semgrep --config=auto --sarif > semgrep-report.sarif
+        continue-on-error: true
+
+      - name: Upload Semgrep JSON Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-json-report
+          path: semgrep-report.json
+
+      - name: Upload Semgrep SARIF Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-sarif-report
+          path: semgrep-report.sarif
+
+      - name: Upload Semgrep SARIF to GitHub Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-report.sarif
+        continue-on-error: true
+
+  hadolint:
+    name: Hadolint
+    runs-on: ubuntu-latest
+    needs: build
+    continue-on-error: true
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Hadolint
+        run: |
+          wget -qO /usr/local/bin/hadolint https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x /usr/local/bin/hadolint
+
+      - name: Run Hadolint
+        run: |
+          echo "Scanning all Dockerfiles..."
+          find . -type f -iname 'Dockerfile*' -print0 | \
+            xargs -0 -n1 hadolint --failure-threshold error \
+              -f tty > hadolint-report.txt
+
+          # Run again with SARIF output
+          find . -type f -iname 'Dockerfile*' -print0 | \
+            xargs -0 -n1 hadolint --failure-threshold error -f sarif \
+            | jq -s '.[0]' > hadolint-report.sarif
+
+      - name: Upload Hadolint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: hadolint-text-report
+          path: hadolint-report.txt
+
+      - name: Upload Hadolint SARIF to Security Dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-report.sarif
+
+  syft:
+    name: Syft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Syft
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Generate SBOM (SPDX format)
+        run: syft dir:. -o spdx-json > sbom.spdx.json
+
+      - name: Upload SBOM to Dependency Graph
+        uses: advanced-security/spdx-dependency-submission-action@v0.1.1
+        with:
+          spdx-path: sbom.spdx.json
+
+      - name: Upload SBOM as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-spdx-json
+          path: sbom.spdx.json
+
+  grype:
+    name: Grype
+    runs-on: ubuntu-latest
+    needs: syft
+    steps:
+      - name: Download SBOM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sbom-spdx-json
+          path: .   # download into workspace
+
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Scan SBOM for Vulnerabilities
+        run: grype sbom:sbom.spdx.json -o table > grype-report.txt
+
+      - name: Scan SBOM for Vulnerabilities (SARIF)
+        run: grype sbom:sbom.spdx.json -o sarif > grype-results.sarif
+
+      - name: Upload Grype Reports as Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: grype-sbom-reports
+          path: | 
+            grype-report.txt
+            grype-results.sarif
+    
+      - name: Patch SARIF for GitHub Code Scanning
+        run: |
+          # Ensure every result has an artifactLocation.uri
+          jq '
+            .runs[0].results |= map(
+              if .locations[0].physicalLocation.artifactLocation.uri == "" then
+                .locations[0].physicalLocation.artifactLocation.uri = "/grype-dependencies"
+              else .
+              end
+            )
+          ' grype-results.sarif > grype-results-fixed.sarif
+
+      - name: Upload Grype SARIF to Security Dashboard
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: grype-results-fixed.sarif
+
+  osv-scanner:
+    name: OSV Scanner
+    runs-on: ubuntu-latest
+    steps:
+  scorecard:
+    name: Scorecard
+    runs-on: ubuntu-latest
+    steps:
