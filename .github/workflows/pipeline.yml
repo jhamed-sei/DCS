@@ -1,3 +1,13 @@
+# ==============================================================================
+# Workflow: NASA AMMOS Java Example
+# What this does (high level):
+#   1) Checks out and build the NASA AMMOS Data Cryptography Services (DCS) code.
+#   2) Runs Bandit Analysis CLI to produce a SARIF report, then publishes results to the GitHub security tab.
+#   3) Runs Semgrep Analysis CLI to produce a SARIF report, then publishes results to the GitHub security tab.
+#   4) Lints any Dockerfiles using HADOLINT, then publishes results to the GitHub security tab.
+#   5) Uses SYFT/GRYPE to create and SBOM and scan it for vulnerabilities, then publishes results to the GitHub security tab and dependency graph.
+# ==============================================================================
+
 name: AMMOS Pipeline
 
 on:
@@ -13,14 +23,19 @@ jobs:
     name: Build DCS KMC
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
       - name: Checkout repository (with submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4
         with:
           submodules: recursive
           fetch-depth: 0
 
       - name: Set up Java 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@f69f00b5e5324696b07f6b1c92f0470a6df00780 # v3
         with:
           distribution: temurin
           java-version: 17
@@ -55,31 +70,23 @@ jobs:
           CFLAGS: -Wno-address
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: dcs-kmc-build
           path: |
             **/target/*.jar
             **/crypto-lib/build/lib/*
             
-  # gitleaks:
-  #   name: gitleaks
-  #   runs-on: ubuntu-latest
-  #   continue-on-error: true
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: gitleaks/gitleaks-action@v2
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }} # Only required for Organizations, not personal accounts.
-
   bandit:
     name: Bandit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4
       - name: Bandit Scan
         uses: shundor/python-bandit-scan@ab1d87dfccc5a0ffab88be3aaac6ffe35c10d6cd
         with: # optional arguments
@@ -87,23 +94,16 @@ jobs:
           exit_zero: true # optional, default is DEFAULT
           # Github token of the repository (automatically created by Github)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information.
-          # File or directory to run bandit on
-          # path: # optional, default is .
-          # Report only issues of a given severity level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
-          # level: # optional, default is UNDEFINED
-          # Report only issues of a given confidence level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
-          # confidence: # optional, default is UNDEFINED
-          # comma-separated list of paths (glob patterns supported) to exclude from scan (note that these are in addition to the excluded paths provided in the config file) (default: .svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg)
-          # excluded_paths: # optional, default is DEFAULT
-          # comma-separated list of test IDs to skip
-          # skips: # optional, default is DEFAULT
-          # path to a .bandit file that supplies command line arguments
-          # ini_path: # optional, default is DEFAULT
 
   semgrep:
     name: Semgrep
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
       - name: Install Semgrep
         run: pip install semgrep
 
@@ -114,19 +114,19 @@ jobs:
         continue-on-error: true
 
       - name: Upload Semgrep JSON Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: semgrep-json-report
           path: semgrep-report.json
 
       - name: Upload Semgrep SARIF Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: semgrep-sarif-report
           path: semgrep-report.sarif
 
       - name: Upload Semgrep SARIF to GitHub Security Tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3.30.3
         with:
           sarif_file: semgrep-report.sarif
         continue-on-error: true
@@ -140,8 +140,13 @@ jobs:
       contents: read
       security-events: write
     steps:
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4
 
       - name: Install Hadolint
         run: |
@@ -161,13 +166,13 @@ jobs:
             | jq -s '.[0]' > hadolint-report.sarif
 
       - name: Upload Hadolint Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: hadolint-text-report
           path: hadolint-report.txt
 
       - name: Upload Hadolint SARIF to Security Dashboard
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3.30.3
         with:
           sarif_file: hadolint-report.sarif
 
@@ -175,8 +180,13 @@ jobs:
     name: Syft
     runs-on: ubuntu-latest
     steps:
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@1e31de5234b9f8995739874a8ce0492dc87873e2 # v4
 
       - name: Install Syft
         run: |
@@ -186,12 +196,12 @@ jobs:
         run: syft dir:. -o spdx-json > sbom.spdx.json
 
       - name: Upload SBOM to Dependency Graph
-        uses: advanced-security/spdx-dependency-submission-action@v0.1.1
+        uses: advanced-security/spdx-dependency-submission-action@5530bab9ee4bbe66420ce8280624036c77f89746 #v0.1.1
         with:
           spdx-path: sbom.spdx.json
 
       - name: Upload SBOM as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sbom-spdx-json
           path: sbom.spdx.json
@@ -201,8 +211,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: syft
     steps:
+      - name: Harden the runner (egress audit)
+        uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
+        with:
+          egress-policy: audit
+
       - name: Download SBOM artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@7a1cd3216ca9260cd8022db641d960b1db4d1be4 # v4
         with:
           name: sbom-spdx-json
           path: .   # download into workspace
@@ -218,7 +233,7 @@ jobs:
         run: grype sbom:sbom.spdx.json -o sarif > grype-results.sarif
 
       - name: Upload Grype Reports as Artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: grype-sbom-reports
           path: | 
@@ -238,7 +253,7 @@ jobs:
           ' grype-results.sarif > grype-results-fixed.sarif
 
       - name: Upload Grype SARIF to Security Dashboard
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@192325c86100d080feab897ff886c34abd4c83a3 # v3.30.3
         with:
           sarif_file: grype-results-fixed.sarif
 
