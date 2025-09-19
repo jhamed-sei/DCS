@@ -21,7 +21,7 @@ permissions:
 jobs:
   build: 
     name: Build DCS KMC
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     steps:
       - name: Harden the runner (egress audit)
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
@@ -79,7 +79,7 @@ jobs:
             
   bandit:
     name: Bandit
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     steps:
       - name: Harden the runner (egress audit)
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
@@ -97,7 +97,7 @@ jobs:
 
   semgrep:
     name: Semgrep
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     steps:
       - name: Harden the runner (egress audit)
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
@@ -133,7 +133,7 @@ jobs:
 
   hadolint:
     name: Hadolint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     needs: build
     continue-on-error: true
     permissions:
@@ -178,7 +178,7 @@ jobs:
 
   syft:
     name: Syft
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     steps:
       - name: Harden the runner (egress audit)
         uses: step-security/harden-runner@ec9f2d5744a09debf3a187a3f4f675c53b671911 # v2.13.0
@@ -208,7 +208,7 @@ jobs:
 
   grype:
     name: Grype
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 
     needs: syft
     steps:
       - name: Harden the runner (egress audit)
